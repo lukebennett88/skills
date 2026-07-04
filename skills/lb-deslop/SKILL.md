@@ -7,12 +7,6 @@ description: Use when asked to remove AI tells, deslop, de-AI, tighten this up, 
 
 Turn drafty prose into writing a person can read once and understand. Remove AI tells, filler, vague claims, and decorative punctuation.
 
-## When to Use
-
-- Requests to "deslop," "remove AI tells," "de-AI," "tighten this up," or "cut fluff"
-- External-facing prose where quality matters: client docs, proposals, marketing copy, published READMEs
-- Draft review for slop, filler, vague language, or formulaic structure
-
 ## Editing Contract
 
 Make prose:

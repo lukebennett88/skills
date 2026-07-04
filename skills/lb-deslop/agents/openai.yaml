@@ -1,0 +1,3 @@
+display_name: Deslop
+short_description: Make draft prose plain, specific, and less AI-shaped.
+default_prompt: Use $lb-deslop to tighten this draft and remove AI tells.

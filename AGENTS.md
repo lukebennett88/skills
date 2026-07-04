@@ -7,8 +7,10 @@ A collection of agent-agnostic skills following the [Agent Skills specification]
 - `skills/<name>/SKILL.md` — canonical location for every skill; flat, one directory per skill
 - `skills/<name>/references/` — heavy reference material, loaded on demand
 - `skills/<name>/scripts/` — executable tools a skill uses
+- `skills/<name>/agents/openai.yaml` — UI metadata (`display_name`, `short_description`, `default_prompt`), required for every skill
 - `template/SKILL.md` — starter template for new skills (not itself a skill)
 - `scripts/validate.mjs` — spec validator, run in CI
+- `scripts/validate.test.mjs` — validator test suite, run in CI
 
 ## Conventions
 
@@ -17,6 +19,10 @@ A collection of agent-agnostic skills following the [Agent Skills specification]
 **Frontmatter:** `name` and `description` only, unless a skill genuinely needs `compatibility` or `metadata`. `name` must match the directory name exactly (lowercase letters, numbers, single hyphens). The repo-level MIT LICENSE covers all skills; omit per-skill `license` fields.
 
 **Descriptions state triggering conditions, never workflow.** Start with "Use when..." and list the symptoms, situations, and phrases that should fire the skill. A description that summarizes the skill's process becomes a shortcut agents follow instead of reading the body.
+
+**The description is the only trigger surface.** Don't add a "When to Use" section to the body; the validator rejects it. A body section that repeats the description's triggers drifts out of sync and inflates the skill. Negative triggers ("skip this for...") belong in the description too.
+
+**Every skill ships `agents/openai.yaml`** with exactly `display_name`, `short_description`, and `default_prompt`. The `default_prompt` must mention the skill name; `SKILL.md` stays the source of truth, so no `name` field here.
 
 **Keep SKILL.md under 500 lines.** Push anything heavier down the hierarchy: reference material into `references/`, reusable code into `scripts/`, linked by relative path one level deep.
 
@@ -28,6 +34,7 @@ A collection of agent-agnostic skills following the [Agent Skills specification]
 
 ```bash
 node scripts/validate.mjs
+node --test scripts/validate.test.mjs
 ```
 
-Must pass with zero errors before committing.
+Both must pass with zero errors before committing.
