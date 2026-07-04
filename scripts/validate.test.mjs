@@ -65,6 +65,56 @@ test('accepts valid skill repo', () => {
 	);
 });
 
+test('ignores dot-directories in skills/', () => {
+	withRepo(
+		{
+			'README.md': validReadme(),
+			'skills/lb-example/SKILL.md': validSkill(),
+			'skills/.archive/notes.md': 'not a skill\n',
+		},
+		(root) => {
+			const result = validateRepo(root);
+
+			assert.deepEqual(result.errors, []);
+			assert.equal(result.checked, 1);
+		},
+	);
+});
+
+test('accepts quoted and block scalar descriptions', () => {
+	withRepo(
+		{
+			'README.md': validReadme(),
+			'skills/lb-example/SKILL.md': `---
+name: lb-example
+description: "Use when checking: quoted values."
+---
+# Example
+`,
+		},
+		(root) => {
+			assert.deepEqual(validateRepo(root).errors, []);
+		},
+	);
+
+	withRepo(
+		{
+			'README.md': validReadme(),
+			'skills/lb-example/SKILL.md': `---
+name: lb-example
+description: >-
+  Use when checking folded
+  block scalar values.
+---
+# Example
+`,
+		},
+		(root) => {
+			assert.deepEqual(validateRepo(root).errors, []);
+		},
+	);
+});
+
 test('rejects body-level trigger headings', () => {
 	withRepo(
 		{
@@ -84,6 +134,52 @@ Do not put trigger guidance here.
 			const result = validateRepo(root);
 
 			assert.match(result.errors.join('\n'), /move "When to Use" guidance into the description/);
+		},
+	);
+});
+
+test('rejects renamed and deeper trigger headings', () => {
+	for (const heading of ['### When to Use', '## When to reach for this', '## Triggers']) {
+		withRepo(
+			{
+				'README.md': validReadme(),
+				'skills/lb-example/SKILL.md': `---
+name: lb-example
+description: Use when checking trigger placement.
+---
+# Example
+
+${heading}
+
+Do not put trigger guidance here.
+`,
+			},
+			(root) => {
+				const result = validateRepo(root);
+
+				assert.equal(result.errors.length, 1, `expected "${heading}" to be rejected`);
+			},
+		);
+	}
+});
+
+test('allows trigger headings quoted inside code fences', () => {
+	withRepo(
+		{
+			'README.md': validReadme(),
+			'skills/lb-example/SKILL.md': `---
+name: lb-example
+description: Use when checking trigger placement.
+---
+# Example
+
+\`\`\`markdown
+## When to Use
+\`\`\`
+`,
+		},
+		(root) => {
+			assert.deepEqual(validateRepo(root).errors, []);
 		},
 	);
 });

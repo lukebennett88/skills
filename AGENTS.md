@@ -15,7 +15,7 @@ A collection of agent-agnostic skills following the [Agent Skills specification]
 
 **Every skill name starts with `lb-`** (e.g. `lb-deslop`). The prefix namespaces these skills so typing `/lb` surfaces them all and installed copies never collide with same-named skills from other sources. The validator enforces this.
 
-**Frontmatter:** `name` and `description` only, unless a skill genuinely needs `compatibility` or `metadata`. `name` must match the directory name exactly (lowercase letters, numbers, single hyphens). The repo-level MIT LICENSE covers all skills; omit per-skill `license` fields.
+**Frontmatter:** `name` and `description` only, unless a skill genuinely needs `compatibility`, `metadata`, or `allowed-tools`. `name` must match the directory name exactly (lowercase letters, numbers, single hyphens). The repo-level MIT LICENSE covers all skills; omit per-skill `license` fields.
 
 **Descriptions state triggering conditions, never workflow.** Start with "Use when..." and list the symptoms, situations, and phrases that should fire the skill. A description that summarizes the skill's process becomes a shortcut agents follow instead of reading the body.
 

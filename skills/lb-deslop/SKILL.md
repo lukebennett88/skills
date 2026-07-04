@@ -1,6 +1,6 @@
 ---
 name: lb-deslop
-description: Use when asked to remove AI tells, deslop, de-AI, tighten this up, cut fluff, review a draft for slop, filler, or vague language, or improve external-facing prose such as client docs, proposals, marketing copy, or published READMEs. Skip routine PR descriptions, commit messages, and Slack updates unless asked.
+description: Use when asked to remove AI tells, deslop, de-AI, tighten this up, cut fluff, review a draft for slop, filler, vague language, or formulaic structure, or improve external-facing prose such as client docs, proposals, marketing copy, or published READMEs. Skip routine PR descriptions, commit messages, and Slack updates unless asked.
 ---
 
 # Deslop: Make Prose Specific, Plain, and Readable

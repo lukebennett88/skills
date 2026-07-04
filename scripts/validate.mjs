@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 // Validates skills against the Agent Skills spec and repo conventions.
 // Zero dependencies.
-import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
+import { existsSync, readFileSync, readdirSync, realpathSync, statSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -20,29 +20,41 @@ const ALLOWED_FRONTMATTER_FIELDS = new Set([
 	'metadata',
 	'allowed-tools',
 ]);
-const BODY_TRIGGER_HEADING_PATTERN = /^##\s+When(?:\s+to)?\s+Use(?:\s+This\s+Skill)?\s*$/im;
+// Trigger-shaped headings at any level: "When to Use", "When not to use",
+// "When to reach for this", "Triggers", "Use this when...".
+const BODY_TRIGGER_HEADING_PATTERN =
+	/^#{2,}\s+(?:when\s+(?:to\s+|not\s+to\s+)?(?:use|reach|apply|invoke)\b.*|triggers?|use\s+this\s+when\b.*)\s*$/im;
+const CODE_FENCE_PATTERN = /^(`{3,}|~{3,})[^\n]*\n[\s\S]*?^\1[^\n]*$/gm;
+const BLOCK_SCALAR_PATTERN = /^[|>][+-]?$/;
 
-export function parseFrontmatter(content) {
+function parseFrontmatter(content) {
 	const match = content.match(FRONTMATTER_PATTERN);
 	if (!match) return null;
 
 	const fields = {};
-	const fieldLines = [];
+	const lines = match[1].split(LINE_BREAK_PATTERN);
 
-	for (const line of match[1].split(LINE_BREAK_PATTERN)) {
-		const kv = line.match(FRONTMATTER_FIELD_PATTERN);
-		if (kv) {
-			fields[kv[1]] = kv[2].trim();
-			fieldLines.push(kv[1]);
+	for (let i = 0; i < lines.length; i += 1) {
+		const kv = lines[i].match(FRONTMATTER_FIELD_PATTERN);
+		if (!kv) continue;
+
+		let value = kv[2].trim();
+
+		if (BLOCK_SCALAR_PATTERN.test(value)) {
+			const block = [];
+			while (i + 1 < lines.length && /^\s/.test(lines[i + 1])) {
+				i += 1;
+				block.push(lines[i].trim());
+			}
+			value = block.join('\n');
+		} else if (value.length >= 2 && /^(["']).*\1$/.test(value)) {
+			value = value.slice(1, -1);
 		}
+
+		fields[kv[1]] = value;
 	}
 
-	return {
-		fields,
-		fieldLines,
-		raw: match[0],
-		body: content.slice(match[0].length),
-	};
+	return { fields, body: content.slice(match[0].length) };
 }
 
 function formatIssue(skill, message) {
@@ -61,9 +73,9 @@ function validateSkill({ dir, skillPath, errors, warnings }) {
 		return;
 	}
 
-	const { fields, fieldLines, body } = parsed;
+	const { fields, body } = parsed;
 
-	for (const field of fieldLines) {
+	for (const field of Object.keys(fields)) {
 		if (!ALLOWED_FRONTMATTER_FIELDS.has(field)) {
 			errors.push(formatIssue(dir, `frontmatter field "${field}" not allowed`));
 		}
@@ -115,7 +127,7 @@ function validateSkill({ dir, skillPath, errors, warnings }) {
 		);
 	}
 
-	if (BODY_TRIGGER_HEADING_PATTERN.test(body)) {
+	if (BODY_TRIGGER_HEADING_PATTERN.test(body.replace(CODE_FENCE_PATTERN, ''))) {
 		errors.push(formatIssue(dir, 'move "When to Use" guidance into the description'));
 	}
 
@@ -158,9 +170,10 @@ export function validateRepo(rootDir = defaultRoot) {
 		};
 	}
 
-	const dirs = readdirSync(skillsDir).filter((entry) =>
-		statSync(join(skillsDir, entry)).isDirectory(),
-	);
+	const dirs = readdirSync(skillsDir).filter((entry) => {
+		if (entry.startsWith('.')) return false;
+		return statSync(join(skillsDir, entry)).isDirectory();
+	});
 
 	for (const dir of dirs) {
 		validateSkill({
@@ -198,6 +211,15 @@ function runCli() {
 	process.exit(result.errors.length > 0 ? 1 : 0);
 }
 
-if (process.argv[1] === fileURLToPath(import.meta.url)) {
+function isCliRun() {
+	if (!process.argv[1]) return false;
+	try {
+		return realpathSync(process.argv[1]) === fileURLToPath(import.meta.url);
+	} catch {
+		return false;
+	}
+}
+
+if (isCliRun()) {
 	runCli();
 }
