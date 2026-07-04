@@ -3,11 +3,11 @@ name: lb-deslop
 description: Use when asked to remove AI tells, deslop, de-AI, tighten this up, cut fluff, review a draft for slop, filler, vague language, or formulaic structure, or improve external-facing prose such as client docs, proposals, marketing copy, or published READMEs. Skip routine PR descriptions, commit messages, and Slack updates unless asked.
 ---
 
-# Deslop: Make Prose Specific, Plain, and Readable
+# Deslop: make prose specific, plain, and readable
 
 Turn drafty prose into writing a person can read once and understand. Remove AI tells, filler, vague claims, and decorative punctuation.
 
-## Editing Contract
+## Editing contract
 
 Make prose:
 
@@ -31,7 +31,7 @@ If a trimmed sentence needs a second read, add words back until it is clear.
 - Repeated summaries: say the point once, not before, during, and after.
 - Signposted endings: "In conclusion," "To sum up"
 
-## Break Formulas
+## Break formulas
 
 - Not-this-but-that: replace "Not because X. Because Y." with one direct cause.
 - Self-posed questions: replace "The result? Devastating." with a normal sentence.
@@ -42,7 +42,7 @@ If a trimmed sentence needs a second read, add words back until it is clear.
 - Passive voice: name the actor when the actor matters.
 - Uniform rhythm: vary sentence length, and do not force every paragraph to end with a punchline.
 
-## Avoid Overused Tells
+## Avoid overused tells
 
 Default to removing these common tells. Keep one only when it is clearer than the plain alternative.
 

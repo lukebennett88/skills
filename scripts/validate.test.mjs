@@ -1,12 +1,23 @@
-import assert from 'node:assert/strict';
-import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
-import { tmpdir } from 'node:os';
-import { dirname, join } from 'node:path';
-import test from 'node:test';
-import { validateRepo } from './validate.mjs';
+// @ts-check
 
+import assert from "node:assert/strict";
+import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, join } from "node:path";
+import test from "node:test";
+import { validateRepo } from "./validate.mjs";
+
+/**
+ * @typedef {Record<string, string>} FileMap
+ * @typedef {(root: string) => void} RepoCallback
+ */
+
+/**
+ * @param {FileMap} files
+ * @returns {string}
+ */
 function createRepo(files) {
-	const root = mkdtempSync(join(tmpdir(), 'skills-validate-'));
+	const root = mkdtempSync(join(tmpdir(), "skills-validate-"));
 
 	for (const [path, content] of Object.entries(files)) {
 		const fullPath = join(root, path);
@@ -17,7 +28,7 @@ function createRepo(files) {
 	return root;
 }
 
-function validSkill(name = 'lb-example') {
+function validSkill(name = "lb-example") {
 	return `---
 name: ${name}
 description: Use when checking a valid fixture skill.
@@ -39,6 +50,10 @@ function validReadme() {
 `;
 }
 
+/**
+ * @param {FileMap} files
+ * @param {RepoCallback} callback
+ */
 function withRepo(files, callback) {
 	const root = createRepo(files);
 
@@ -49,11 +64,11 @@ function withRepo(files, callback) {
 	}
 }
 
-test('accepts valid skill repo', () => {
+test("accepts valid skill repo", () => {
 	withRepo(
 		{
-			'README.md': validReadme(),
-			'skills/lb-example/SKILL.md': validSkill(),
+			"README.md": validReadme(),
+			"skills/lb-example/SKILL.md": validSkill(),
 		},
 		(root) => {
 			const result = validateRepo(root);
@@ -65,12 +80,12 @@ test('accepts valid skill repo', () => {
 	);
 });
 
-test('ignores dot-directories in skills/', () => {
+test("ignores dot-directories in skills/", () => {
 	withRepo(
 		{
-			'README.md': validReadme(),
-			'skills/lb-example/SKILL.md': validSkill(),
-			'skills/.archive/notes.md': 'not a skill\n',
+			"README.md": validReadme(),
+			"skills/lb-example/SKILL.md": validSkill(),
+			"skills/.archive/notes.md": "not a skill\n",
 		},
 		(root) => {
 			const result = validateRepo(root);
@@ -81,11 +96,11 @@ test('ignores dot-directories in skills/', () => {
 	);
 });
 
-test('accepts quoted and block scalar descriptions', () => {
+test("accepts quoted and block scalar descriptions", () => {
 	withRepo(
 		{
-			'README.md': validReadme(),
-			'skills/lb-example/SKILL.md': `---
+			"README.md": validReadme(),
+			"skills/lb-example/SKILL.md": `---
 name: lb-example
 description: "Use when checking: quoted values."
 ---
@@ -99,8 +114,8 @@ description: "Use when checking: quoted values."
 
 	withRepo(
 		{
-			'README.md': validReadme(),
-			'skills/lb-example/SKILL.md': `---
+			"README.md": validReadme(),
+			"skills/lb-example/SKILL.md": `---
 name: lb-example
 description: >-
   Use when checking folded
@@ -115,11 +130,11 @@ description: >-
 	);
 });
 
-test('rejects body-level trigger headings', () => {
+test("rejects body-level trigger headings", () => {
 	withRepo(
 		{
-			'README.md': validReadme(),
-			'skills/lb-example/SKILL.md': `---
+			"README.md": validReadme(),
+			"skills/lb-example/SKILL.md": `---
 name: lb-example
 description: Use when checking trigger placement.
 ---
@@ -133,17 +148,24 @@ Do not put trigger guidance here.
 		(root) => {
 			const result = validateRepo(root);
 
-			assert.match(result.errors.join('\n'), /move "When to Use" guidance into the description/);
+			assert.match(
+				result.errors.join("\n"),
+				/move "When to Use" guidance into the description/,
+			);
 		},
 	);
 });
 
-test('rejects renamed and deeper trigger headings', () => {
-	for (const heading of ['### When to Use', '## When to reach for this', '## Triggers']) {
+test("rejects renamed and deeper trigger headings", () => {
+	for (const heading of [
+		"### When to Use",
+		"## When to reach for this",
+		"## Triggers",
+	]) {
 		withRepo(
 			{
-				'README.md': validReadme(),
-				'skills/lb-example/SKILL.md': `---
+				"README.md": validReadme(),
+				"skills/lb-example/SKILL.md": `---
 name: lb-example
 description: Use when checking trigger placement.
 ---
@@ -157,17 +179,21 @@ Do not put trigger guidance here.
 			(root) => {
 				const result = validateRepo(root);
 
-				assert.equal(result.errors.length, 1, `expected "${heading}" to be rejected`);
+				assert.equal(
+					result.errors.length,
+					1,
+					`expected "${heading}" to be rejected`,
+				);
 			},
 		);
 	}
 });
 
-test('allows trigger headings quoted inside code fences', () => {
+test("allows trigger headings quoted inside code fences", () => {
 	withRepo(
 		{
-			'README.md': validReadme(),
-			'skills/lb-example/SKILL.md': `---
+			"README.md": validReadme(),
+			"skills/lb-example/SKILL.md": `---
 name: lb-example
 description: Use when checking trigger placement.
 ---
@@ -184,11 +210,11 @@ description: Use when checking trigger placement.
 	);
 });
 
-test('rejects descriptions without Use when prefix', () => {
+test("rejects descriptions without Use when prefix", () => {
 	withRepo(
 		{
-			'README.md': validReadme(),
-			'skills/lb-example/SKILL.md': `---
+			"README.md": validReadme(),
+			"skills/lb-example/SKILL.md": `---
 name: lb-example
 description: Checks valid fixture skills.
 ---
@@ -202,21 +228,27 @@ Use body validator tests.
 		(root) => {
 			const result = validateRepo(root);
 
-			assert.match(result.errors.join('\n'), /description must start with "Use when"/);
+			assert.match(
+				result.errors.join("\n"),
+				/description must start with "Use when"/,
+			);
 		},
 	);
 });
 
-test('rejects READMEs that omit skill links', () => {
+test("rejects READMEs that omit skill links", () => {
 	withRepo(
 		{
-			'README.md': '# Skills\n',
-			'skills/lb-example/SKILL.md': validSkill(),
+			"README.md": "# Skills\n",
+			"skills/lb-example/SKILL.md": validSkill(),
 		},
 		(root) => {
 			const result = validateRepo(root);
 
-			assert.match(result.errors.join('\n'), /missing skill table link for lb-example/);
+			assert.match(
+				result.errors.join("\n"),
+				/missing skill table link for lb-example/,
+			);
 		},
 	);
 });

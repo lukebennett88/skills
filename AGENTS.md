@@ -1,4 +1,4 @@
-# Skills Repo
+# Skills repo
 
 A collection of agent-agnostic skills following the [Agent Skills specification](https://agentskills.io/specification). Skills are distributed via `npx skills add lukebennett88/skills`.
 

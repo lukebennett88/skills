@@ -24,6 +24,7 @@ The [skills CLI](https://skills.sh) symlinks skills into each agent's directory,
 
 | Skill | Description |
 |-------|-------------|
+| [lb-code-style](skills/lb-code-style/SKILL.md) | JS/TS and React readability defaults — early returns, lookups over switch, Map/Set for lookups, plain loops over clever reduce |
 | [lb-deslop](skills/lb-deslop/SKILL.md) | Make prose specific, plain, and readable — remove AI tells, filler, and formulaic structure |
 
 ## Structure
