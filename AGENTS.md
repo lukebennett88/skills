@@ -29,14 +29,7 @@ A collection of agent-agnostic skills following the [Agent Skills specification]
 
 ## Authoring
 
-Use Anthropic's authoring skills when creating or editing skills. Install them locally:
-
-```bash
-npx skills add anthropics/claude-plugins-official/skill-creator
-npx skills add anthropics/claude-plugins-official/skill-development
-```
-
-These land in `.agents/`, which stays gitignored: the skills CLI scans `.agents/skills/` as a skill container, so committing them would distribute them alongside the `lb-` skills.
+Skill-authoring tools are a local choice, not a repo dependency. Install whichever you like with `npx skills add <source>`; they land in `.agents/`, which stays gitignored: the skills CLI scans `.agents/skills/` as a skill container, so committing them would distribute them alongside the `lb-` skills.
 
 ## Verification
 
