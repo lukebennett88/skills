@@ -1,5 +1,5 @@
 ---
-name: skill-name-here
+name: lb-skill-name-here
 description: Use when [specific triggering conditions, symptoms, and situations — not a summary of what the skill does or its workflow].
 ---
 

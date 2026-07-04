@@ -10,6 +10,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const skillsDir = join(root, "skills");
 
 const NAME_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
+const SKILL_PREFIX = "lb-";
 const FRONTMATTER_PATTERN = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 const FRONTMATTER_FIELD_PATTERN = /^([A-Za-z][A-Za-z0-9-]*):\s*(.*)$/;
 const LINE_BREAK_PATTERN = /\r?\n/;
@@ -76,6 +77,9 @@ for (const dir of dirs) {
 		}
 		if (fields.name.length > 64) {
 			error(dir, `name exceeds 64 characters (${fields.name.length})`);
+		}
+		if (!fields.name.startsWith(SKILL_PREFIX)) {
+			error(dir, `name "${fields.name}" must start with "${SKILL_PREFIX}" (repo convention: all skills are prefixed to avoid collisions)`);
 		}
 	}
 

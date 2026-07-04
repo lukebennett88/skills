@@ -24,7 +24,7 @@ The [skills CLI](https://skills.sh) symlinks skills into each agent's directory,
 
 | Skill | Description |
 |-------|-------------|
-| _None yet_ | |
+| [lb-deslop](skills/lb-deslop/SKILL.md) | Make prose specific, plain, and readable — remove AI tells, filler, and formulaic structure |
 
 ## Structure
 
@@ -42,7 +42,7 @@ scripts/
 
 ## Writing a new skill
 
-1. Copy `template/SKILL.md` into `skills/<skill-name>/`.
+1. Copy `template/SKILL.md` into `skills/lb-<skill-name>/`. All skills are prefixed `lb-` so `/lb` surfaces them and names never collide with skills from other sources.
 2. Set `name` (must match the directory) and `description` (triggering conditions only — start with "Use when...").
 3. Keep the body under 500 lines; push heavy material into `references/` or `scripts/`.
 4. Test it: run the scenario without the skill, confirm the failure, then confirm the skill fixes it.
