@@ -38,18 +38,20 @@ template/
   SKILL.md            # starter template for new skills
 scripts/
   validate.mjs        # spec validator (runs in CI)
+  validate.test.mjs   # validator tests (run in CI)
 ```
 
 ## Writing a new skill
 
 1. Copy `template/SKILL.md` into `skills/lb-<skill-name>/`. All skills are prefixed `lb-` so `/lb` surfaces them and names never collide with skills from other sources.
-2. Set `name` (must match the directory) and `description` (triggering conditions only — start with "Use when...").
+2. Set `name` (must match the directory) and `description` (triggering conditions only, start with "Use when").
 3. Keep the body under 500 lines; push heavy material into `references/` or `scripts/`.
 4. Test it: run the scenario without the skill, confirm the failure, then confirm the skill fixes it.
 5. Validate:
 
 ```bash
 node scripts/validate.mjs
+node --test scripts/validate.test.mjs
 ```
 
 See [AGENTS.md](AGENTS.md) for full conventions.

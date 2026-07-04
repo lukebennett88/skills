@@ -1,0 +1,5 @@
+# Locally installed authoring skills. Never commit: the skills CLI scans
+# .agents/skills/ as a skill container, so committing these would distribute
+# them alongside the lb- skills.
+.agents/
+skills-lock.json
