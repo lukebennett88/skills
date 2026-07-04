@@ -11,13 +11,16 @@ const NAME_PATTERN = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 const SKILL_PREFIX = 'lb-';
 const FRONTMATTER_PATTERN = /^---\r?\n([\s\S]*?)\r?\n---\r?\n?/;
 const FRONTMATTER_FIELD_PATTERN = /^([A-Za-z][A-Za-z0-9-]*):\s*(.*)$/;
-const YAML_FIELD_PATTERN = /^([A-Za-z][A-Za-z0-9_-]*):\s*(.*)$/;
 const LINE_BREAK_PATTERN = /\r?\n/;
 const MAX_BODY_LINES = 500;
-const ALLOWED_FRONTMATTER_FIELDS = new Set(['name', 'description', 'compatibility', 'metadata']);
+const ALLOWED_FRONTMATTER_FIELDS = new Set([
+	'name',
+	'description',
+	'compatibility',
+	'metadata',
+	'allowed-tools',
+]);
 const BODY_TRIGGER_HEADING_PATTERN = /^##\s+When(?:\s+to)?\s+Use(?:\s+This\s+Skill)?\s*$/im;
-const REQUIRED_AGENT_FIELDS = ['display_name', 'short_description', 'default_prompt'];
-const ALLOWED_AGENT_FIELDS = new Set(REQUIRED_AGENT_FIELDS);
 
 export function parseFrontmatter(content) {
 	const match = content.match(FRONTMATTER_PATTERN);
@@ -40,37 +43,6 @@ export function parseFrontmatter(content) {
 		raw: match[0],
 		body: content.slice(match[0].length),
 	};
-}
-
-function parseYamlFields(content) {
-	const fields = {};
-	const fieldLines = [];
-
-	const lines = content.split(LINE_BREAK_PATTERN);
-
-	for (let i = 0; i < lines.length; i += 1) {
-		const line = lines[i];
-		const kv = line.match(YAML_FIELD_PATTERN);
-		if (kv) {
-			const [, key, rawValue] = kv;
-			fieldLines.push(key);
-
-			if (rawValue.trim() === '|') {
-				const blockLines = [];
-
-				while (i + 1 < lines.length && /^\s/.test(lines[i + 1])) {
-					i += 1;
-					blockLines.push(lines[i].trim());
-				}
-
-				fields[key] = blockLines.join('\n');
-			} else {
-				fields[key] = rawValue.trim();
-			}
-		}
-	}
-
-	return { fields, fieldLines };
 }
 
 function formatIssue(skill, message) {
@@ -158,46 +130,6 @@ function validateSkill({ dir, skillPath, errors, warnings }) {
 	}
 }
 
-function validateAgentMetadata({ dir, agentPath, errors }) {
-	if (!existsSync(agentPath)) {
-		errors.push(formatIssue(dir, 'missing agents/openai.yaml'));
-		return;
-	}
-
-	const { fields, fieldLines } = parseYamlFields(readFileSync(agentPath, 'utf8'));
-
-	for (const field of fieldLines) {
-		if (!ALLOWED_AGENT_FIELDS.has(field)) {
-			errors.push(formatIssue(dir, `agents/openai.yaml field "${field}" not allowed`));
-		}
-	}
-
-	for (const field of REQUIRED_AGENT_FIELDS) {
-		if (!fields[field]) {
-			errors.push(formatIssue(dir, `agents/openai.yaml missing required field: ${field}`));
-		}
-	}
-
-	if (fields.display_name && fields.display_name.length > 80) {
-		errors.push(
-			formatIssue(dir, `display_name exceeds 80 characters (${fields.display_name.length})`),
-		);
-	}
-
-	if (fields.short_description && fields.short_description.length > 160) {
-		errors.push(
-			formatIssue(
-				dir,
-				`short_description exceeds 160 characters (${fields.short_description.length})`,
-			),
-		);
-	}
-
-	if (fields.default_prompt && !fields.default_prompt.includes(dir)) {
-		errors.push(formatIssue(dir, `default_prompt must include "${dir}"`));
-	}
-}
-
 function validateReadme({ rootDir, dirs, errors }) {
 	const readmePath = join(rootDir, 'README.md');
 	if (!existsSync(readmePath)) {
@@ -236,11 +168,6 @@ export function validateRepo(rootDir = defaultRoot) {
 			skillPath: join(skillsDir, dir, 'SKILL.md'),
 			errors,
 			warnings,
-		});
-		validateAgentMetadata({
-			dir,
-			agentPath: join(skillsDir, dir, 'agents', 'openai.yaml'),
-			errors,
 		});
 	}
 

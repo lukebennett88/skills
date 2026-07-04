@@ -30,13 +30,6 @@ Use this body for validator tests.
 `;
 }
 
-function validMetadata() {
-	return `display_name: Example
-short_description: Check a valid fixture skill.
-default_prompt: Use $lb-example to check this fixture.
-`;
-}
-
 function validReadme() {
 	return `# Skills
 
@@ -61,28 +54,6 @@ test('accepts valid skill repo', () => {
 		{
 			'README.md': validReadme(),
 			'skills/lb-example/SKILL.md': validSkill(),
-			'skills/lb-example/agents/openai.yaml': validMetadata(),
-		},
-		(root) => {
-			const result = validateRepo(root);
-
-			assert.deepEqual(result.errors, []);
-			assert.deepEqual(result.warnings, []);
-			assert.equal(result.checked, 1);
-		},
-	);
-});
-
-test('accepts block scalar default_prompt metadata', () => {
-	withRepo(
-		{
-			'README.md': validReadme(),
-			'skills/lb-example/SKILL.md': validSkill(),
-			'skills/lb-example/agents/openai.yaml': `display_name: Example
-short_description: Check a valid fixture skill.
-default_prompt: |
-  Use $lb-example to check this fixture.
-`,
 		},
 		(root) => {
 			const result = validateRepo(root);
@@ -108,7 +79,6 @@ description: Use when checking trigger placement.
 
 Do not put trigger guidance here.
 `,
-			'skills/lb-example/agents/openai.yaml': validMetadata(),
 		},
 		(root) => {
 			const result = validateRepo(root);
@@ -132,7 +102,6 @@ description: Checks valid fixture skills.
 
 Use body validator tests.
 `,
-			'skills/lb-example/agents/openai.yaml': validMetadata(),
 		},
 		(root) => {
 			const result = validateRepo(root);
@@ -142,30 +111,11 @@ Use body validator tests.
 	);
 });
 
-test('rejects invalid agent metadata', () => {
-	withRepo(
-		{
-			'README.md': validReadme(),
-			'skills/lb-example/SKILL.md': validSkill(),
-			'skills/lb-example/agents/openai.yaml': `display_name: Example
-short_description: Check a valid fixture skill.
-default_prompt: Use the example checker.
-`,
-		},
-		(root) => {
-			const result = validateRepo(root);
-
-			assert.match(result.errors.join('\n'), /default_prompt must include "lb-example"/);
-		},
-	);
-});
-
 test('rejects READMEs that omit skill links', () => {
 	withRepo(
 		{
 			'README.md': '# Skills\n',
 			'skills/lb-example/SKILL.md': validSkill(),
-			'skills/lb-example/agents/openai.yaml': validMetadata(),
 		},
 		(root) => {
 			const result = validateRepo(root);
