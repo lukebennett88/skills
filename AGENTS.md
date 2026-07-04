@@ -27,6 +27,17 @@ A collection of agent-agnostic skills following the [Agent Skills specification]
 
 **Skills are tested before they land.** Run a baseline scenario without the skill, document the failure, write the skill against those specific failures, and verify the scenario passes with the skill present. Don't batch multiple untested skills into one change.
 
+## Authoring
+
+Use Anthropic's authoring skills when creating or editing skills. Install them locally:
+
+```bash
+npx skills add anthropics/claude-plugins-official/skill-creator
+npx skills add anthropics/claude-plugins-official/skill-development
+```
+
+These land in `.agents/`, which stays gitignored: the skills CLI scans `.agents/skills/` as a skill container, so committing them would distribute them alongside the `lb-` skills.
+
 ## Verification
 
 ```bash
