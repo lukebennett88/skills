@@ -16,7 +16,9 @@ These are defaults for JS/TS control flow, data structures, and React components
 | Situation                                  | Prefer                              | Avoid                                          |
 | ------------------------------------------ | ----------------------------------- | ---------------------------------------------- |
 | Invalid or finished case                   | Early return                        | Wrapping the rest of the function in `else`    |
-| Branching assignment                       | IIFE with early returns             | `let` declared outside and mutated in branches |
+| Branching assignment                       | Inline IIFE, early returns, typed   | `let` declared outside and mutated in branches |
+| Value built by several `if` blocks         | Isolate in one function             | Mutation scattered through the caller          |
+| Helper params mirroring a props type       | Derive with `Pick`/indexed access   | Hand-copied field types                        |
 | 3+ cases on one value with different logic | `switch`                            | Long `if`/`else if` chains                     |
 | Pure key-to-value mapping                  | Lookup object or `Record`           | `switch` or chained conditionals               |
 | Side-effect iteration                      | `for...of`                          | `.forEach` or index loops                      |
@@ -25,6 +27,7 @@ These are defaults for JS/TS control flow, data structures, and React components
 | Complex aggregate                          | Explicit loop                       | `.reduce` that needs explanation               |
 | Conditional value                          | One ternary, lookup, or `if`/`else` | Nested ternaries                               |
 | React component                            | Function component                  | Class component                                |
+| Prop forwarded to a wrapped primitive      | Keep the primitive's name           | Renaming without a strong reason               |
 | Arrow body wraps                           | Block body with `return`            | Multi-line implicit return                     |
 
 ## Rules
@@ -68,6 +71,105 @@ const progress: number = (() => {
 ```
 
 Use a lookup object instead when the value is a pure map from one key.
+
+Annotate the result explicitly, especially when the value feeds a specific prop — derive the type from that prop (`ComponentProps<T>["propName"]`) instead of restating its shape by hand. This documents intent at the declaration site and makes TypeScript flag a branch that returns the wrong shape.
+
+```ts
+const confirmLabel: ButtonProps["children"] = (() => {
+	if (formState === "submitting") return "Saving…";
+	if (formState === "error") return "Try again";
+
+	return "Save";
+})();
+```
+
+Keep the IIFE inline at its point of use so it closes over local variables directly. Only pull it into a standalone top-level function when the logic is reused elsewhere, or must exist as a stable reference rather than an immediately-resolved value — e.g. a callback passed as a render prop.
+
+```ts
+// Avoid — forces the caller's locals to be threaded through as parameters,
+// and separates the branches from the one place that reads the result
+function resolveConfirmLabel(formState: FormState, hasUnsavedChanges: boolean) {
+	if (formState === "submitting") return "Saving…";
+	if (formState === "error") return "Try again";
+	if (!hasUnsavedChanges) return "Done";
+
+	return "Save";
+}
+const confirmLabel = resolveConfirmLabel(formState, hasUnsavedChanges);
+
+// Prefer — colocated inline IIFE, no parameters to keep in sync
+const confirmLabel: ButtonProps["children"] = (() => {
+	if (formState === "submitting") return "Saving…";
+	if (formState === "error") return "Try again";
+	if (!hasUnsavedChanges) return "Done";
+
+	return "Save";
+})();
+```
+
+The top-level extraction earns its keep once the result must be handed off as a callback instead of resolved immediately:
+
+```ts
+function renderEmptyState(status: FetchStatus) {
+	if (status === "loading") return <Spinner />;
+
+	return <p>No results</p>;
+}
+
+// `renderEmptyState` prop expects a function, not a resolved node — the extraction is required here
+const resolvedEmptyState = listProps?.renderEmptyState ?? (() => renderEmptyState(status));
+```
+
+### Isolate multi-step object construction
+
+When building one object takes several independent `if` blocks that each mutate it, pull the whole thing into a dedicated function instead of scattering the mutation through the surrounding component or handler. The mutation itself is fine — contained to one clearly-named unit beats being spread across a render body.
+
+```ts
+// Avoid — mutation scattered through the caller, mixed in with unrelated logic
+function submitForm(form: FormValues) {
+	const requestInit: RequestInit = { method: "POST", body: JSON.stringify(form) };
+	if (form.isRetry) requestInit.headers = { "Idempotency-Key": form.id };
+	if (form.attachment) requestInit.body = toFormData(form);
+	// ...fetch(url, requestInit)
+}
+
+// Prefer — one pure function owns the branching and the mutation
+function buildRequestInit(form: FormValues): RequestInit {
+	const requestInit: RequestInit = { method: "POST", body: JSON.stringify(form) };
+	if (form.isRetry) requestInit.headers = { "Idempotency-Key": form.id };
+	if (form.attachment) requestInit.body = toFormData(form);
+
+	return requestInit;
+}
+```
+
+### Derive helper types instead of restating them
+
+When a helper's parameters mirror fields already declared on a props interface, derive the type with `Pick` or indexed access instead of retyping each field by hand. Hand-written duplicates drift silently — a field can end up wider or narrower than the real prop.
+
+```ts
+// Avoid — duplicated, and can drift (here `role` is typed as `string`, wider than the real prop)
+function canEditOrder(user: { role: string; isOwner: boolean }) {}
+
+// Prefer
+function canEditOrder(user: Pick<User, "role" | "isOwner">) {}
+```
+
+### Match prop names to the primitive being wrapped
+
+When a component forwards a prop straight through to an underlying primitive, keep the primitive's name unless the rename earns its keep. Matching names make the API predictable to anyone who already knows the primitive, and let the type be reused directly (`PrimitiveProps["propName"]`) instead of re-declared under a new name.
+
+```ts
+// Avoid — invents a new name for something the primitive already calls `padding`
+interface CardProps {
+	spacing?: BoxProps["padding"];
+}
+
+// Prefer
+interface CardProps {
+	padding?: BoxProps["padding"];
+}
+```
 
 ### Choose switch only for different logic
 
@@ -241,6 +343,7 @@ const summarize = (order: Order) => {
 - Replacing `.map`, `.filter`, or simple `.reduce` calls that already return the needed value clearly.
 - Treating these preferences as lint rules when local convention says otherwise.
 - Applying the hot-path rules below to ordinary code without profiling — they trade readability for speed you can't measure there.
+- Duplicating the same validation condition and error message across two functions (e.g. a dev-only early check and the real runtime guard) — keep one source of truth, even if only one caller runs in development.
 
 ## Hot-path performance
 
