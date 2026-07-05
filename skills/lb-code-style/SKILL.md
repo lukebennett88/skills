@@ -152,17 +152,23 @@ const confirmLabel: ButtonProps["children"] = (() => {
 The top-level extraction earns its keep once the result must be handed off as a callback instead of resolved immediately:
 
 ```tsx
+// EmptyState is its own module-level component, not nested inside OrderList
 function EmptyState({ status }: { status: FetchStatus }) {
 	if (status === "loading") return <Spinner />;
 
 	return <p>No results</p>;
 }
 
-// the prop expects a function React calls later, not a resolved node — extraction is required
-const renderEmptyState = listProps?.renderEmptyState ?? (() => <EmptyState status={status} />);
+function OrderList({ status, listProps }: OrderListProps) {
+	// the prop expects a function React calls later, not a resolved node — extraction is required
+	const renderEmptyState =
+		listProps?.renderEmptyState ?? (() => <EmptyState status={status} />);
+
+	// ...
+}
 ```
 
-A function that returns JSX should be a component (`<EmptyState status={status} />`), not a `renderEmptyState()` helper you call directly — a component gets its own boundary, hooks, and DevTools identity. The `() => …` thunk is still required here because the prop wants a callback React invokes later, so only its render-time inputs are passed through as props.
+A function that returns JSX should be a component (`<EmptyState status={status} />`), not a `renderEmptyState()` helper you call directly — a component gets its own boundary, hooks, and DevTools identity. The `() => …` thunk is still required here because the prop wants a callback React invokes later, so only its render-time inputs are passed through as props. The thunk is a closure and belongs inside the parent; the component it renders stays at module scope.
 
 ### Isolate multi-step object construction
 
@@ -366,28 +372,34 @@ function OrderRow({ order }: { order: Order }) {
 
 ### Render JSX with a component, not a helper
 
-A function that returns JSX should be a component (`<EmptyState />`), not a `renderEmptyState()` helper you call inline. A component gets its own reconciliation identity, hook scope, and DevTools entry; a called helper gets none of these — it just splices nodes into the parent. Reach for a render-prop thunk (`() => <EmptyState … />`) only when the API requires a function it invokes later.
+A function that returns JSX should be a component (`<EmptyState />`), not a `renderEmptyState()` helper you call inline. A component gets its own reconciliation identity, hook scope, and DevTools entry; a called helper gets none of these — it just splices nodes into the parent. Define the component at module scope, never inside another component's body: a nested definition is a new function identity on every render, so React remounts its subtree and discards its state. Reach for a render-prop thunk (`() => <EmptyState … />`) only when the API requires a function it invokes later.
 
 ```tsx
-// Avoid — a helper that returns JSX, called inline
-function renderEmptyState(status: FetchStatus) {
-	if (status === "loading") return <Spinner />;
+// Avoid — a JSX-returning helper defined and called inside the parent
+function OrderList({ status }: OrderListProps) {
+	function renderEmptyState() {
+		if (status === "loading") return <Spinner />;
 
-	return <p>No results</p>;
+		return <p>No results</p>;
+	}
+
+	return <div>{renderEmptyState()}</div>;
 }
-return <div>{renderEmptyState(status)}</div>;
 
-// Prefer — a component
+// Prefer — a sibling component at module scope
 function EmptyState({ status }: { status: FetchStatus }) {
 	if (status === "loading") return <Spinner />;
 
 	return <p>No results</p>;
 }
-return (
-	<div>
-		<EmptyState status={status} />
-	</div>
-);
+
+function OrderList({ status }: OrderListProps) {
+	return (
+		<div>
+			<EmptyState status={status} />
+		</div>
+	);
+}
 ```
 
 ### Use block bodies once arrow returns wrap
