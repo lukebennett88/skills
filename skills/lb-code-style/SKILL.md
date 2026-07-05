@@ -28,6 +28,7 @@ These are defaults for JS/TS control flow, data structures, and React components
 | Complex aggregate                          | Explicit loop                       | `.reduce` that needs explanation               |
 | Conditional value                          | One ternary, lookup, or `if`/`else` | Nested ternaries                               |
 | React component                            | Function component                  | Class component                                |
+| Function that returns JSX                  | Component (`<Name />`)              | `render*()` helper called directly             |
 | Prop forwarded to a wrapped primitive      | Keep the primitive's name           | Renaming without a strong reason               |
 | Arrow body wraps                           | Block body with `return`            | Multi-line implicit return                     |
 
@@ -361,6 +362,32 @@ Use function components for React code unless the codebase has a class-component
 function OrderRow({ order }: { order: Order }) {
 	return <tr>{order.id}</tr>;
 }
+```
+
+### Render JSX with a component, not a helper
+
+A function that returns JSX should be a component (`<EmptyState />`), not a `renderEmptyState()` helper you call inline. A component gets its own reconciliation identity, hook scope, and DevTools entry; a called helper gets none of these — it just splices nodes into the parent. Reach for a render-prop thunk (`() => <EmptyState … />`) only when the API requires a function it invokes later.
+
+```tsx
+// Avoid — a helper that returns JSX, called inline
+function renderEmptyState(status: FetchStatus) {
+	if (status === "loading") return <Spinner />;
+
+	return <p>No results</p>;
+}
+return <div>{renderEmptyState(status)}</div>;
+
+// Prefer — a component
+function EmptyState({ status }: { status: FetchStatus }) {
+	if (status === "loading") return <Spinner />;
+
+	return <p>No results</p>;
+}
+return (
+	<div>
+		<EmptyState status={status} />
+	</div>
+);
 ```
 
 ### Use block bodies once arrow returns wrap
