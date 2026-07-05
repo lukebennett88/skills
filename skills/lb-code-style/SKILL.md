@@ -150,16 +150,18 @@ const confirmLabel: ButtonProps["children"] = (() => {
 
 The top-level extraction earns its keep once the result must be handed off as a callback instead of resolved immediately:
 
-```ts
-function renderEmptyState(status: FetchStatus) {
+```tsx
+function EmptyState({ status }: { status: FetchStatus }) {
 	if (status === "loading") return <Spinner />;
 
 	return <p>No results</p>;
 }
 
-// `renderEmptyState` prop expects a function, not a resolved node — the extraction is required here
-const resolvedEmptyState = listProps?.renderEmptyState ?? (() => renderEmptyState(status));
+// the prop expects a function React calls later, not a resolved node — extraction is required
+const renderEmptyState = listProps?.renderEmptyState ?? (() => <EmptyState status={status} />);
 ```
+
+A function that returns JSX should be a component (`<EmptyState status={status} />`), not a `renderEmptyState()` helper you call directly — a component gets its own boundary, hooks, and DevTools identity. The `() => …` thunk is still required here because the prop wants a callback React invokes later, so only its render-time inputs are passed through as props.
 
 ### Isolate multi-step object construction
 
