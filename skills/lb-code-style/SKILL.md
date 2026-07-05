@@ -35,7 +35,7 @@ These are defaults for JS/TS control flow, data structures, and React components
 
 ### Order code by importance, not by dependency
 
-Put the most important function first — usually the exported component or entry point — with its helpers below it. Function declarations (`function foo() {}`) are hoisted, so a function can freely call helpers defined later in the same file. A reader sees the big picture first and can stop once they have what they need, instead of wading through implementation details to find the part that matters.
+Put the most important function first — usually the exported component or entry point — with its helpers below it. Function declarations (`function foo() {}`) are hoisted, so a function can call helpers defined later in the same file. A reader sees the big picture first and can stop once they have what they need, instead of wading through implementation details to find the part that matters.
 
 ```ts
 // Prefer — the entry point reads first, helpers follow
@@ -53,7 +53,7 @@ function formatCurrency(amount: number) {
 	// ...
 }
 
-// Avoid — helpers first bury the part a reader actually came for
+// Avoid — helpers first bury the part the reader came for
 function calculateTotal(lineItems: LineItem[]) {
 	// ...
 }
@@ -69,7 +69,7 @@ export function Invoice(props: InvoiceProps) {
 }
 ```
 
-This relies on hoisting, so helpers must be `function` declarations, not `const helper = () => {}` — function expressions aren't hoisted and would throw if called before their line runs.
+This relies on hoisting, so helpers must be `function` declarations, not `const helper = () => {}` — arrow functions aren't hoisted and throw if called before their line runs.
 
 Exported types and interfaces aren't order-sensitive the same way — keep them near the top of the file. They're the public contract a reader needs before anything else, not an implementation detail to defer.
 
@@ -163,7 +163,7 @@ const resolvedEmptyState = listProps?.renderEmptyState ?? (() => renderEmptyStat
 
 ### Isolate multi-step object construction
 
-When building one object takes several independent `if` blocks that each mutate it, pull the whole thing into a dedicated function instead of scattering the mutation through the surrounding component or handler. The mutation itself is fine — contained to one clearly-named unit beats being spread across a render body.
+When building one object takes several independent `if` blocks that each mutate it, pull the whole thing into a dedicated function instead of scattering the mutation through the surrounding component or handler. The mutation itself is fine — owning it in one clearly-named function beats spreading it across a render body.
 
 ```ts
 // Avoid — mutation scattered through the caller, mixed in with unrelated logic
