@@ -15,6 +15,7 @@ These are defaults for JS/TS control flow, data structures, and React components
 
 | Situation                                  | Prefer                              | Avoid                                          |
 | ------------------------------------------ | ----------------------------------- | ---------------------------------------------- |
+| File organization                          | Important code first, helpers below | Helpers first, main logic buried at the bottom |
 | Invalid or finished case                   | Early return                        | Wrapping the rest of the function in `else`    |
 | Branching assignment                       | Inline IIFE, early returns, typed   | `let` declared outside and mutated in branches |
 | Value built by several `if` blocks         | Isolate in one function             | Mutation scattered through the caller          |
@@ -31,6 +32,46 @@ These are defaults for JS/TS control flow, data structures, and React components
 | Arrow body wraps                           | Block body with `return`            | Multi-line implicit return                     |
 
 ## Rules
+
+### Order code by importance, not by dependency
+
+Put the most important function first — usually the exported component or entry point — with its helpers below it. Function declarations (`function foo() {}`) are hoisted, so a function can freely call helpers defined later in the same file. A reader sees the big picture first and can stop once they have what they need, instead of wading through implementation details to find the part that matters.
+
+```ts
+// Prefer — the entry point reads first, helpers follow
+export function Invoice(props: InvoiceProps) {
+	const total = calculateTotal(props.lineItems);
+
+	return <Text>{formatCurrency(total)}</Text>;
+}
+
+function calculateTotal(lineItems: LineItem[]) {
+	// ...
+}
+
+function formatCurrency(amount: number) {
+	// ...
+}
+
+// Avoid — helpers first bury the part a reader actually came for
+function calculateTotal(lineItems: LineItem[]) {
+	// ...
+}
+
+function formatCurrency(amount: number) {
+	// ...
+}
+
+export function Invoice(props: InvoiceProps) {
+	const total = calculateTotal(props.lineItems);
+
+	return <Text>{formatCurrency(total)}</Text>;
+}
+```
+
+This relies on hoisting, so helpers must be `function` declarations, not `const helper = () => {}` — function expressions aren't hoisted and would throw if called before their line runs.
+
+Exported types and interfaces aren't order-sensitive the same way — keep them near the top of the file. They're the public contract a reader needs before anything else, not an implementation detail to defer.
 
 ### Use early returns
 
