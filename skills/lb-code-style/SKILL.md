@@ -30,6 +30,7 @@ These are defaults for JS/TS control flow, data structures, and React components
 | React component                            | Function component                  | Class component                                |
 | Function that returns JSX                  | Component (`<Name />`)              | `render*()` helper called directly             |
 | Prop forwarded to a wrapped primitive      | Keep the primitive's name           | Renaming without a strong reason               |
+| Boolean React prop                         | `is`/`has`/`can` prefix             | Bare `disabled` pass-through; many per axis    |
 | Arrow body wraps                           | Block body with `return`            | Multi-line implicit return                     |
 
 ## Rules
@@ -220,6 +221,42 @@ interface CardProps {
 	padding?: BoxProps["padding"];
 }
 ```
+
+### Name boolean props by their job
+
+Use a boolean only for stable two-state ideas. If the same axis could grow another option, use a string union so adding a value stays non-breaking.
+
+```tsx
+// Prefer
+<Table density="compact" />
+<Tooltip placement="top" />
+
+// Avoid
+<Table isCompact />
+<Tooltip alignTop alignBottom alignLeft alignRight />
+```
+
+Name every boolean with the `is`/`has`/`can` convention so it reads like a question: `isOpen`, `isLoading`, `hasSearch`, `canDelete`. Apply this even to booleans that mirror a native HTML attribute or a wrapped primitive's prop — prefer `isDisabled`, `isChecked`, `isRequired`, `isReadOnly` over bare `disabled`/`checked`. For booleans this overrides "Match prop names to the primitive being wrapped" above; the question-form name wins. Use `has` for added structure or behavior, not visual styling.
+
+Default booleans to `false` so consumers opt in with a bare prop instead of opting out with `={false}`. Use `showX` for optional extras off by default and `hideX` for default anatomy consumers can remove. The name should tell the consumer what the default is. Avoid double negatives like `isNotVisible`; when accepting a negative prop, derive a positive local name.
+
+```tsx
+// hideLabel defaults to false — derive a positive name for local logic
+const isLabelVisible = !hideLabel;
+```
+
+### Name component callbacks by control model
+
+Use `isOpen`/`onOpenChange` when a component owns controllable visibility; dismissal closes with `onOpenChange(false)`. Use `onDismiss` when the consumer owns rendering and dismissal is only an action.
+
+```tsx
+// Component owns the state — expose it and report every change
+<Dialog isOpen={isOpen} onOpenChange={setIsOpen} />
+// Consumer owns rendering — dismissal is a one-way action, not held state
+{toast ? <Toast onDismiss={() => setToast(null)} /> : null}
+```
+
+Component callbacks pass semantic values (`onChange(value)`, `onSortChange(descriptor)`), not DOM events, unless wrapping a native element API or third-party library callback shape.
 
 ### Choose switch only for different logic
 
