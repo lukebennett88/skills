@@ -7,7 +7,7 @@ A collection of agent-agnostic skills following the [Agent Skills specification]
 - `skills/<name>/SKILL.md` — canonical location for every skill; flat, one directory per skill
 - `skills/<name>/references/` — heavy reference material, loaded on demand
 - `skills/<name>/scripts/` — executable tools a skill uses
-- `template/SKILL.md` — starter template for new skills (not itself a skill)
+- `template/SKILL.template.md` — starter template for new skills (not itself a skill)
 - `scripts/validate.mjs` — spec validator, run in CI
 - `scripts/validate.test.mjs` — validator test suite, run in CI
 
