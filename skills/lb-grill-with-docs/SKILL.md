@@ -1,6 +1,6 @@
 ---
 name: lb-grill-with-docs
-description: Use when a plan or design needs sharpening through a relentless one-question-at-a-time interview before building, capturing terms and decisions into project docs as they crystallise. Step 1 of the planning pipeline for work that fits one session.
+description: Use when a plan or design that fits one session needs stress-testing and sharpening through a relentless interview before building.
 disable-model-invocation: true
 ---
 

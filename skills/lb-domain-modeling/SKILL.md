@@ -46,4 +46,4 @@ Not every decision earns a place in the docs. Write one down when all three are 
 2. **Surprising without context** — a future reader will wonder "why did they do it this way?"
 3. **The result of a real trade-off** — there were genuine alternatives and you picked one for specific reasons
 
-If any of the three is missing, skip it. When it passes, record the decision — with its why — in the topic doc that owns the area, or in `AGENTS.md` if nothing owns it yet. Never a separate ADR file.
+If any of the three is missing, skip it. When it passes, record the decision — with its why — in the topic doc that owns the area, creating a new `docs/<TOPIC>.md` if nothing owns it. `AGENTS.md` carries only small repo-wide facts, never substantial decisions. Never a separate ADR file.
