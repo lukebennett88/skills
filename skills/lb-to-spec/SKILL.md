@@ -4,15 +4,15 @@ description: Use when the current conversation has already settled the decisions
 disable-model-invocation: true
 ---
 
-This skill takes the current conversation context and codebase understanding and produces a spec (you may know this document as a PRD). Do NOT interview the user — just synthesize what you already know.
+This skill takes the current conversation context and codebase understanding and produces a spec (you may know this document as a PRD). Do NOT interview the user — just synthesize what you already know. The seam check and the tracker question below are operational confirmations, not interview questions — if both are open, ask them together in one reply, and publish nothing until both are answered.
 
 ## Resolving the issue tracker
 
 Resolve the tracker before reading or writing any issue:
 
-1. If the repo has a `.scratch/` directory containing issue files, use the local markdown tracker (`.scratch/<feature>/issues/`) without asking.
+1. If the repo has a `.scratch/` directory containing issue files, use the local markdown tracker (`.scratch/<feature>/issues/`) without asking. Local markdown never needs publish confirmation — the files land in the working tree, where they're reviewed before committing.
 2. Otherwise, ask the user which tracker to use this session: GitHub Issues (`gh` CLI), GitLab (`glab` CLI), local markdown, or something else they describe (e.g. Linear).
-3. Before the first issue-creating operation of a session, confirm the target once — "Publishing to <tracker> on <repo> — ok?" — then don't ask again. Reads never need confirmation.
+3. For a real (non-local) tracker, confirm the concrete target once before the session's first issue-creating operation — "Publishing to <tracker> on <repo> — ok?" — then don't ask again. Reads never need confirmation.
 
 Planning artefacts under `.scratch/` are committed, never gitignored — they must travel with worktrees, clones, and other harnesses.
 
