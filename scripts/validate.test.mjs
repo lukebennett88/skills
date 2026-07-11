@@ -210,6 +210,24 @@ description: Use when checking trigger placement.
 	);
 });
 
+test("allows disable-model-invocation frontmatter field", () => {
+	withRepo(
+		{
+			"README.md": validReadme(),
+			"skills/lb-example/SKILL.md": `---
+name: lb-example
+description: Use when checking allowed frontmatter fields.
+disable-model-invocation: true
+---
+# Example
+`,
+		},
+		(root) => {
+			assert.deepEqual(validateRepo(root).errors, []);
+		},
+	);
+});
+
 test("rejects descriptions without Use when prefix", () => {
 	withRepo(
 		{
