@@ -36,6 +36,7 @@ const ALLOWED_FRONTMATTER_FIELDS = new Set([
 	"compatibility",
 	"metadata",
 	"allowed-tools",
+	"disable-model-invocation",
 ]);
 // Trigger-shaped headings at any level: "When to Use", "When not to use",
 // "When to reach for this", "Triggers", "Use this when...".

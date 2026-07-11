@@ -1,6 +1,6 @@
 ---
-name: code-review
-description: Review the changes since a fixed point (commit, branch, tag, or merge-base) along two axes — Standards (does the code follow this repo's documented coding standards?) and Spec (does the code match what the originating issue/PRD asked for?). Runs both reviews in parallel sub-agents and reports them side by side. Use when the user wants to review a branch, a PR, work-in-progress changes, or asks to "review since X".
+name: lb-code-review
+description: Use when the user wants to review a branch, a PR, or work-in-progress changes since a fixed point (commit, branch, tag, or merge-base), or asks to "review since X".
 ---
 
 Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
@@ -10,7 +10,15 @@ Two-axis review of the diff between `HEAD` and a fixed point the user supplies:
 
 Both axes run as **parallel sub-agents** so they don't pollute each other's context, then this skill aggregates their findings.
 
-The issue tracker should have been provided to you — run `/setup-matt-pocock-skills` if `docs/agents/issue-tracker.md` is missing.
+## Resolving the issue tracker
+
+Resolve the tracker before reading or writing any issue:
+
+1. If the repo has a `.scratch/` directory containing issue files, use the local markdown tracker (`.scratch/<feature>/issues/`) without asking.
+2. Otherwise, ask the user which tracker to use this session: GitHub Issues (`gh` CLI), GitLab (`glab` CLI), local markdown, or something else they describe (e.g. Linear).
+3. Before the first issue-creating or issue-editing operation of a session, confirm the target once — "Publishing to <tracker> on <repo> — ok?" — then don't ask again. Reads never need confirmation.
+
+Planning artefacts under `.scratch/` are committed, never gitignored — they must travel with worktrees, clones, and other harnesses.
 
 ## Process
 
@@ -26,7 +34,7 @@ Before going further, confirm the fixed point resolves (`git rev-parse <fixed-po
 
 Look for the originating spec, in this order:
 
-1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the workflow in `docs/agents/issue-tracker.md`.
+1. Issue references in the commit messages (`#123`, `Closes #45`, GitLab `!67`, etc.) — fetch via the resolved tracker (see Resolving the issue tracker).
 2. A path the user passed as an argument.
 3. A PRD/spec file under `docs/`, `specs/`, or `.scratch/` matching the branch name or feature.
 4. If nothing is found, ask the user where the spec is. If they say there isn't one, the **Spec** sub-agent will skip and report "no spec available".
@@ -34,6 +42,8 @@ Look for the originating spec, in this order:
 ### 3. Identify the standards sources
 
 Anything in the repo that documents how code should be written, such as `CODING_STANDARDS.md` or `CONTRIBUTING.md`.
+
+The Standards axis also always carries the `lb-code-style` skill (JS/TS and React style rules) and the `lb-deslop` skill (prose quality in comments, error messages, and docs touched by the diff) — locate both among the available/installed skills and include their full SKILL.md text in the Standards sub-agent prompt, marked as judgement-call sources that repo-documented standards override, same as the smell baseline.
 
 On top of whatever the repo documents, the Standards axis always carries the **smell baseline** below — a fixed set of Fowler code smells (_Refactoring_, ch.3) that applies even when a repo documents nothing. Two rules bind it:
 
@@ -63,6 +73,7 @@ Send a single message with two `Agent` tool calls. Use the `general-purpose` sub
 
 - The full diff command and commit list.
 - The list of standards-source files you found in step 3, **plus the smell baseline from step 3** pasted in full — the sub-agent has no other access to it.
+- The full SKILL.md text of the `lb-code-style` and `lb-deslop` skills, marked as judgement-call sources that repo-documented standards override, same as the smell baseline.
 - The brief: "Report — per file/hunk where relevant — (a) every place the diff violates a documented standard: cite the standard (file + the rule); and (b) any baseline smell you spot: name it and quote the hunk. Distinguish hard violations from judgement calls — documented-standard breaches can be hard, but baseline smells are always judgement calls, and a documented repo standard overrides the baseline. Skip anything tooling enforces. Under 400 words."
 
 **Spec sub-agent prompt** — include:

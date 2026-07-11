@@ -1,22 +1,30 @@
 ---
-name: to-spec
-description: Turn the current conversation into a spec and publish it to the project issue tracker — no interview, just synthesis of what you've already discussed.
+name: lb-to-spec
+description: Use when the current conversation has already settled the decisions and should be synthesised into a spec (PRD) published to the issue tracker — no interview, just synthesis.
 disable-model-invocation: true
 ---
 
 This skill takes the current conversation context and codebase understanding and produces a spec (you may know this document as a PRD). Do NOT interview the user — just synthesize what you already know.
 
-The issue tracker and triage label vocabulary should have been provided to you — run `/setup-matt-pocock-skills` if not.
+## Resolving the issue tracker
+
+Resolve the tracker before reading or writing any issue:
+
+1. If the repo has a `.scratch/` directory containing issue files, use the local markdown tracker (`.scratch/<feature>/issues/`) without asking.
+2. Otherwise, ask the user which tracker to use this session: GitHub Issues (`gh` CLI), GitLab (`glab` CLI), local markdown, or something else they describe (e.g. Linear).
+3. Before the first issue-creating or issue-editing operation of a session, confirm the target once — "Publishing to <tracker> on <repo> — ok?" — then don't ask again. Reads never need confirmation.
+
+Planning artefacts under `.scratch/` are committed, never gitignored — they must travel with worktrees, clones, and other harnesses.
 
 ## Process
 
-1. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's domain glossary vocabulary throughout the spec, and respect any ADRs in the area you're touching.
+1. Explore the repo to understand the current state of the codebase, if you haven't already. Use the project's established vocabulary — check `AGENTS.md` and `docs/` — throughout the spec, and respect documented decisions in the area you're touching.
 
 2. Sketch out the seams at which you're going to test the feature. Existing seams should be preferred to new ones. Use the highest seam possible. If new seams are needed, propose them at the highest point you can. The fewer seams across the codebase, the better - the ideal number is one.
 
 Check with the user that these seams match their expectations.
 
-3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage.
+3. Write the spec using the template below, then publish it to the project issue tracker. Apply the `ready-for-agent` triage label - no need for additional triage. When the tracker is local markdown, the spec is published to `.scratch/<feature-slug>/spec.md`.
 
 <spec-template>
 
@@ -73,3 +81,5 @@ A description of the things that are out of scope for this spec.
 Any further notes about the feature.
 
 </spec-template>
+
+Break the spec into tickets with `/lb-to-tickets`.
