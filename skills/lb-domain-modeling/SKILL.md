@@ -26,6 +26,13 @@ When the user uses a term that conflicts with the existing language in the proje
 
 When the user uses vague or overloaded terms, propose a precise canonical term. "You're saying 'account' — do you mean the Customer or the User? Those are different things."
 
+When recording a term in the owning doc:
+
+- **Be opinionated.** Pick one canonical term; list the discouraged synonyms beside it ("avoid: client, buyer, account").
+- **Keep definitions tight.** One or two sentences max; define what the concept *is*, not what it does.
+- **Only domain-specific concepts.** General programming terms (timeouts, error types, utility patterns) don't belong, however heavily the project uses them.
+- **Group related terms** when natural clusters emerge; a flat list is fine otherwise.
+
 ### Discuss concrete scenarios
 
 When domain relationships are being discussed, stress-test them with specific scenarios. Invent scenarios that probe edge cases and force the user to be precise about the boundaries between concepts.
@@ -46,4 +53,6 @@ Not every decision earns a place in the docs. Write one down when all three are 
 2. **Surprising without context** — a future reader will wonder "why did they do it this way?"
 3. **The result of a real trade-off** — there were genuine alternatives and you picked one for specific reasons
 
-If any of the three is missing, skip it. When it passes, record the decision — with its why — in the topic doc that owns the area, creating a new `docs/<TOPIC>.md` if nothing owns it. `AGENTS.md` carries only small repo-wide facts, never substantial decisions. Never a separate ADR file.
+What commonly passes all three: architectural shape; integration patterns between modules; technology choices that carry real lock-in; ownership and boundary decisions (the explicit no-s as much as the yes-s); deliberate deviations from the obvious approach; constraints invisible in the code; rejected alternatives when the rejection is non-obvious.
+
+If any of the three is missing, skip it. When it passes, record the decision — with its why — in the topic doc that owns the area, creating a new `docs/<TOPIC>.md` if nothing owns it. `AGENTS.md` carries only small repo-wide facts, never substantial decisions. Never a separate ADR file. Keep the record small — context, decision, and why in a few sentences; add consequences or rejected options only when they earn their place.
